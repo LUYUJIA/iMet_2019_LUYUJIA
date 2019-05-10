@@ -2,11 +2,11 @@
 from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
-
+from score import f2_score
 
 def threshold_search(preds, labels, do_plot=False):
     score = []
-    thrs = np.arange(0, 0.5, 0.01)
+    thrs = np.arange(0, 0.51, 0.05)
     for thr in tqdm(thrs):
         score.append(f2_score(labels, preds, thr))
     score = np.array(score)

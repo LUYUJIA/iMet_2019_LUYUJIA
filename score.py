@@ -1,4 +1,6 @@
-def f2_score(y_true, y_pred, threshold=0.2):
+import torch
+
+def f2_score(y_true, y_pred, threshold=0.1):
     return fbeta_score(y_true, y_pred, 2, threshold)
 
 
