@@ -154,7 +154,7 @@ def main():
 
     bestmodel_logstr = 'Best f2_score is {} on epoch {}'.format(best_model_f2,best_model_ep)
     print(bestmodel_logstr)
-    torch.save(best_model, "../output/best_model_" + str(best_model_ep) + ".pth")
+    torch.save(best_model, "../output/best_model_" + str(best_model_f2) + ".pth")
 
     xs = list(range(1, len(train_losses) + 1))
 

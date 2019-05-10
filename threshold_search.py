@@ -4,9 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from score import f2_score
 
-def threshold_search(preds, labels, do_plot=False):
+def threshold_search(labels, preds, do_plot=False):
     score = []
-    thrs = np.arange(0, 0.51, 0.05)
+    thrs = np.arange(0, 0.5, 0.05)
     for thr in tqdm(thrs):
         score.append(f2_score(labels, preds, thr))
     score = np.array(score)
