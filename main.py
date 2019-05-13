@@ -11,6 +11,7 @@ from transform import RandomSizedCrop
 from model import mymodel
 from score import f2_score
 from threshold_search import threshold_search
+from make_folds import make_folds
 
 def main():
     parser = argparse.ArgumentParser()
@@ -22,6 +23,7 @@ def main():
     arg('--fold', type=int, default=0)
     args = parser.parse_args()
 
+    make_folds(n_folds=5, root="../input/")
 
     transformed_dataset = iMetDataset(csv_file='train.csv', 
                                   label_file="labels.csv", 
@@ -63,7 +65,7 @@ def main():
 
     optimizer=torch.optim.Adam(model.parameters(), lr=lr)
     criterion=torch.nn.BCELoss()
-    sheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5, patience=3)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,mode='max', factor=0.2, patience=3, threshold=0.01, min_lr=1e-7, threshold_mode='abs')
 
     def train(epoch, train_loader):
         model.train()
@@ -112,8 +114,11 @@ def main():
             
         return test_loss / (batch_idx + 1), f2_eval
 
-    train_df = pd.read_csv("../input/train.csv")
-    train_indices, valid_indices = train_test_split(train_df.index, test_size=0.20, random_state=33)
+    folds = pd.read_csv("../input/folds.csv")
+    train_fold = folds[folds['fold'] != 0]
+    valid_fold = folds[folds['fold'] == 0]
+    train_indices = train_fold.index
+    valid_indices = valid_fold.index
 
     train_loader = DataLoader(
         transformed_dataset,
@@ -146,7 +151,8 @@ def main():
         valid_f2s.append(valid_f2)
         print('Train Epoch {}: valid_loss: {:.6f}'.format(epoch,valid_loss))
         print('Train Epoch {}: valid_f2: {:.6f}'.format(epoch,valid_f2))
-    
+        scheduler.step(valid_f2)
+        
         if valid_f2 >= best_model_f2:
             best_model = model.state_dict()
             best_model_f2 = valid_f2
