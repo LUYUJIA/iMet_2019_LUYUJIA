@@ -24,7 +24,7 @@ def main():
     args = parser.parse_args()
 
     make_folds(n_folds=5, root="../input/")
-
+    
     transformed_dataset = iMetDataset(csv_file='train.csv', 
                                   label_file="labels.csv", 
                                   img_path="train_unzip/", 
@@ -39,12 +39,10 @@ def main():
                                   ]))
 
     for i in range(len(transformed_dataset)):
-    
         sample = transformed_dataset[i]
         print(i, sample['image'].size())
         print(i, sample['labels'])
-        if i == 3:
-            break
+        if i == 3: break
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')    
     model = mymodel(args.model)
