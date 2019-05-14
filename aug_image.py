@@ -25,9 +25,9 @@ def aug_image(image, is_infer=False, augment = 1):
                        [
                            iaa.GaussianBlur((0, 1.5)),
                            iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.01 * 255), per_channel=0.5),
-                           iaa.AddToHueAndSaturation((-5, 5)),  # change hue and saturation
-                           iaa.PiecewiseAffine(scale=(0.01, 0.03)),
-                           iaa.PerspectiveTransform(scale=(0.01, 0.1))
+                           iaa.AddToHueAndSaturation((-5, 5)),
+                           iaa.EdgeDetect(alpha=(0, 0.5)), 
+                           iaa.CoarseSaltAndPepper(0.2, size_percent=(0.05, 0.1)), 
                        ],
                        random_order=True
                        )

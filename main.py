@@ -2,13 +2,14 @@ import pandas as pd
 import numpy as np    
 import matplotlib.pyplot as plt   
 import torch 
-import torchvision 
+import torchvision
+import torch.nn as nn
 from torchvision import transforms
 from sklearn.model_selection import train_test_split
 import argparse
 from dataset import iMetDataset
 from transform import RandomSizedCrop
-from model import mymodel
+from senet import *
 from score import f2_score
 from threshold_search import threshold_search
 from make_folds import make_folds
@@ -45,7 +46,14 @@ def main():
         if i == 3: break
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')    
-    model = mymodel(args.model)
+
+    model = se_resnext50_32x4d()
+    model = nn.Sequential(
+                model,
+                nn.Linear(1000, 1103),
+                nn.Sigmoid()
+    )
+    
     if torch.cuda.device_count() > 1:
             print("Let's use", torch.cuda.device_count(), "GPUs!")
             model = nn.DataParallel(model)
@@ -63,7 +71,7 @@ def main():
 
     optimizer=torch.optim.Adam(model.parameters(), lr=lr)
     criterion=torch.nn.BCELoss()
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,mode='max', factor=0.2, patience=3, threshold=0.01, min_lr=1e-7, threshold_mode='abs')
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,mode='max', factor=0.2, patience=2, threshold=0.01, min_lr=1e-7, threshold_mode='abs')
 
     def train(epoch, train_loader):
         model.train()
@@ -80,10 +88,10 @@ def main():
             total_loss += loss.item()
         
             if (batch_idx+1) % 10 == 0:
-                print('Train Epoch {}: [({}/{})] Loss: {:.6f}'.format(epoch,batch_idx+1,len(train_loader), total_loss/ (batch_idx + 1)))
+                print('Train Epoch {}: [({}/{})]'.format(epoch,batch_idx+1,len(train_loader)))
 
         torch.save(model.state_dict(), "../output/model_" + str(epoch) + ".pth")
-        return total_loss / (batch_idx + 1)
+        return total_loss
 
     def validate(epoch, valid_loader):
         model.eval();
@@ -107,10 +115,9 @@ def main():
             all_true_ans = torch.cat(true_ans_list)
             all_preds = torch.cat(preds_cat)
         
-            f2_thr,f2_eval = threshold_search(all_true_ans, all_preds)
-            print("f2_thr",f2_thr)
+            f2_eval =f2_score(all_true_ans, all_preds)
             
-        return test_loss / (batch_idx + 1), f2_eval
+        return test_loss, f2_eval
 
     folds = pd.read_csv("../input/folds.csv")
     train_fold = folds[folds['fold'] != 0]
