@@ -61,6 +61,7 @@ def main():
     model.to(device)
 
     ##train
+
     max_epochs=args.epochs
     lr=args.lr
     
@@ -90,7 +91,6 @@ def main():
             if (batch_idx+1) % 10 == 0:
                 print('Train Epoch {}: [({}/{})]'.format(epoch,batch_idx+1,len(train_loader)))
 
-        torch.save(model.state_dict(), "../output/model_" + str(epoch) + ".pth")
         return total_loss
 
     def validate(epoch, valid_loader):
@@ -115,7 +115,7 @@ def main():
             all_true_ans = torch.cat(true_ans_list)
             all_preds = torch.cat(preds_cat)
         
-            f2_eval =f2_score(all_true_ans, all_preds)
+            f2_eval =f2_score(all_true_ans, all_preds).item()
             
         return test_loss, f2_eval
 
@@ -156,6 +156,7 @@ def main():
         valid_f2s.append(valid_f2)
         print('Train Epoch {}: valid_loss: {:.6f}'.format(epoch,valid_loss))
         print('Train Epoch {}: valid_f2: {:.6f}'.format(epoch,valid_f2))
+        torch.save(model.state_dict(), "../output/model_" + str(epoch) + "_" + str(valid_f2)  + ".pth")
         scheduler.step(valid_f2)
         
         if valid_f2 >= best_model_f2:
