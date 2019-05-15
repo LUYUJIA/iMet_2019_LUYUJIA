@@ -24,7 +24,7 @@ def main():
     arg('--fold', type=int, default=0)
     args = parser.parse_args()
 
-    make_folds(n_folds=5, root="../input/")
+    make_folds(n_folds=20, root="../input/")
     
     transformed_dataset = iMetDataset(csv_file='train.csv', 
                                   label_file="labels.csv", 
