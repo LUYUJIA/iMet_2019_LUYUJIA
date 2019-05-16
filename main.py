@@ -48,10 +48,10 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')    
 
     model = se_resnext50_32x4d()
-    model = nn.Sequential(
-                model,
-                nn.Linear(1000, 1103),
-                nn.Sigmoid()
+    in_features = model.last_linear.in_features
+    model.last_linear = nn.Sequential(
+        nn.Linear(in_features, 1103),
+        nn.Sigmoid()
     )
     
     if torch.cuda.device_count() > 1:
@@ -72,7 +72,7 @@ def main():
 
     optimizer=torch.optim.Adam(model.parameters(), lr=lr)
     criterion=torch.nn.BCELoss()
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,mode='max', factor=0.2, patience=2, threshold=0.01, min_lr=1e-7, threshold_mode='abs')
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,mode='max', factor=0.2, patience=2, threshold=0.01, min_lr=1e-6, threshold_mode='abs')
 
     def train(epoch, train_loader):
         model.train()
