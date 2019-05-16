@@ -24,14 +24,14 @@ def main():
     arg('--fold', type=int, default=0)
     args = parser.parse_args()
 
-    make_folds(n_folds=20, root="../input/")
+    make_folds(n_folds=5, root="../input/")
     
     transformed_dataset = iMetDataset(csv_file='train.csv', 
                                   label_file="labels.csv", 
                                   img_path="train_unzip/", 
                                   root_dir='../input/',
                                   transform=transforms.Compose([
-                                      RandomSizedCrop((224)),
+                                      RandomSizedCrop((320)),
                                       transforms.RandomHorizontalFlip(),
                                       transforms.ToTensor(),
                                       transforms.Normalize(

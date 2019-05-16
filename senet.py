@@ -61,7 +61,7 @@ pretrained_settings = {
         'imagenet': {
             'url': 'http://data.lip6.fr/cadene/pretrainedmodels/se_resnext50_32x4d-a260b3a4.pth',
             'input_space': 'RGB',
-            'input_size': [3, 224, 224],
+            'input_size': [3, 320, 320],
             'input_range': [0, 1],
             'mean': [0.485, 0.456, 0.406],
             'std': [0.229, 0.224, 0.225],
@@ -72,7 +72,7 @@ pretrained_settings = {
         'imagenet': {
             'url': 'http://data.lip6.fr/cadene/pretrainedmodels/se_resnext101_32x4d-3b2fe3d8.pth',
             'input_space': 'RGB',
-            'input_size': [3, 224, 224],
+            'input_size': [3, 320, 320],
             'input_range': [0, 1],
             'mean': [0.485, 0.456, 0.406],
             'std': [0.229, 0.224, 0.225],
@@ -321,7 +321,7 @@ class SENet(nn.Module):
             downsample_kernel_size=downsample_kernel_size,
             downsample_padding=downsample_padding
         )
-        self.avg_pool = nn.AvgPool2d(7, stride=1)
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.dropout = nn.Dropout(dropout_p) if dropout_p is not None else None
         self.last_linear = nn.Linear(512 * block.expansion, num_classes)
 
