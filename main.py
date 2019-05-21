@@ -13,6 +13,7 @@ from senet import *
 from score import f2_score
 from threshold_search import threshold_search
 from make_folds import make_folds
+from CyclicLR import CyclicLR
 
 def main():
     parser = argparse.ArgumentParser()
@@ -72,7 +73,7 @@ def main():
 
     optimizer=torch.optim.Adam(model.parameters(), lr=lr)
     criterion=torch.nn.BCELoss()
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,mode='max', factor=0.2, patience=2, threshold=0.01, min_lr=1e-6, threshold_mode='abs')
+    scheduler = CyclicLR(optimizer, base_lr=1e-5, max_lr=1e-2)
 
     def train(epoch, train_loader):
         model.train()
@@ -80,6 +81,7 @@ def main():
         f2 = 0.0
     
         for batch_idx, sample in enumerate(train_loader):
+            scheduler.batch_step()
             image, labels = sample["image"].to(device, dtype=torch.float), sample["labels"].to(device, dtype=torch.float)
             optimizer.zero_grad()
             output = model(image)
@@ -157,7 +159,6 @@ def main():
         print('Train Epoch {}: valid_loss: {:.6f}'.format(epoch,valid_loss))
         print('Train Epoch {}: valid_f2: {:.6f}'.format(epoch,valid_f2))
         torch.save(model.state_dict(), "../output/model_" + str(epoch) + "_" + str(valid_f2)  + ".pth")
-        scheduler.step(valid_f2)
         
         if valid_f2 >= best_model_f2:
             best_model = model.state_dict()
