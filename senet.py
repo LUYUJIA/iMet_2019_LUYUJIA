@@ -5,7 +5,7 @@ https://github.com/pytorch/vision/blob/master/torchvision/models/resnet.py
 from __future__ import print_function, division, absolute_import
 from collections import OrderedDict
 import math
-
+import torch
 import torch.nn as nn
 from torch.utils import model_zoo
 
@@ -59,7 +59,7 @@ pretrained_settings = {
     },
     'se_resnext50_32x4d': {
         'imagenet': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/se_resnext50_32x4d-a260b3a4.pth',
+            'url': '/data3/kaggle/iMet_TPR/scripts/ro/input/model/se_resnext50_32x4d-a260b3a4.pth',
             'input_space': 'RGB',
             'input_size': [3, 320, 320],
             'input_range': [0, 1],
@@ -70,7 +70,7 @@ pretrained_settings = {
     },
     'se_resnext101_32x4d': {
         'imagenet': {
-            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/se_resnext101_32x4d-3b2fe3d8.pth',
+            'url': '/data3/kaggle/iMet_TPR/scripts/ro/input/model/se_resnext101_32x4d-3b2fe3d8.pth',
             'input_space': 'RGB',
             'input_size': [3, 320, 320],
             'input_range': [0, 1],
@@ -371,7 +371,7 @@ def initialize_pretrained_model(model, num_classes, settings):
     assert num_classes == settings['num_classes'], \
         'num_classes should be {}, but is {}'.format(
             settings['num_classes'], num_classes)
-    model.load_state_dict(model_zoo.load_url(settings['url']))
+    model.load_state_dict(torch.load(settings['url']))
     model.input_space = settings['input_space']
     model.input_size = settings['input_size']
     model.input_range = settings['input_range']

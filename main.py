@@ -13,7 +13,6 @@ from senet import *
 from score import f2_score
 from threshold_search import threshold_search
 from make_folds import make_folds
-from CyclicLR import CyclicLR
 
 def main():
     parser = argparse.ArgumentParser()
@@ -48,7 +47,7 @@ def main():
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')    
 
-    model = se_resnext50_32x4d()
+    model = se_resnext101_32x4d()
     in_features = model.last_linear.in_features
     model.last_linear = nn.Sequential(
         nn.Linear(in_features, 1103),
@@ -73,15 +72,14 @@ def main():
 
     optimizer=torch.optim.Adam(model.parameters(), lr=lr)
     criterion=torch.nn.BCELoss()
-    scheduler = CyclicLR(optimizer, base_lr=1e-5, max_lr=1e-2)
-
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,mode='max', factor=0.2, patience=1, threshold=0.02, min_lr=1e-6, threshold_mode='abs')
+    
     def train(epoch, train_loader):
         model.train()
         total_loss = 0.0
         f2 = 0.0
     
         for batch_idx, sample in enumerate(train_loader):
-            scheduler.batch_step()
             image, labels = sample["image"].to(device, dtype=torch.float), sample["labels"].to(device, dtype=torch.float)
             optimizer.zero_grad()
             output = model(image)
@@ -122,8 +120,8 @@ def main():
         return test_loss, f2_eval
 
     folds = pd.read_csv("../input/folds.csv")
-    train_fold = folds[folds['fold'] != 0]
-    valid_fold = folds[folds['fold'] == 0]
+    train_fold = folds[folds['fold'] != args.fold]
+    valid_fold = folds[folds['fold'] == args.fold]
     train_indices = train_fold.index
     valid_indices = valid_fold.index
 
@@ -131,13 +129,13 @@ def main():
         transformed_dataset,
         batch_size=batch_size,
         sampler=torch.utils.data.SubsetRandomSampler(train_indices),
-        num_workers=4)
+        num_workers=6)
 
     valid_loader = DataLoader(
         transformed_dataset,
         batch_size=batch_size,
         sampler=torch.utils.data.SubsetRandomSampler(valid_indices),
-        num_workers=4)
+        num_workers=6)
 
     train_losses = []
     valid_losses = []
@@ -159,6 +157,7 @@ def main():
         print('Train Epoch {}: valid_loss: {:.6f}'.format(epoch,valid_loss))
         print('Train Epoch {}: valid_f2: {:.6f}'.format(epoch,valid_f2))
         torch.save(model.state_dict(), "../output/model_" + str(epoch) + "_" + str(valid_f2)  + ".pth")
+        scheduler.step(valid_f2)
         
         if valid_f2 >= best_model_f2:
             best_model = model.state_dict()
@@ -167,18 +166,7 @@ def main():
 
     bestmodel_logstr = 'Best f2_score is {} on epoch {}'.format(best_model_f2,best_model_ep)
     print(bestmodel_logstr)
-    torch.save(best_model, "../output/best_model_" + str(best_model_f2) + ".pth")
+    torch.save(best_model, "../output/best_model_fold" + str(args.fold) +"_" + str(best_model_f2) + ".pth")
 
-    xs = list(range(1, len(train_losses) + 1))
-
-    plt.plot(xs, train_losses, label = 'Train loss');
-    plt.plot(xs, valid_losses, label = 'Val loss');
-    plt.plot(xs, valid_f2s, label = 'Val f2');
-    plt.legend();
-    plt.xticks(xs);
-    plt.xlabel('Epochs');
-
-
-        
 if __name__ == '__main__':
     main()
