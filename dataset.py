@@ -35,7 +35,6 @@ class iMetDataset(Dataset):
         
         image = imread(self.img_path + img_id + ".png")
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        #image = aug_image(image)
         image = Image.fromarray(image)
         
         if self.transform:
