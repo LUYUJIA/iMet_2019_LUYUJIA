@@ -1,2 +1,2 @@
-# iMet_2019_LUYUJIA
+# iMet_2019_Kaggle
 iMet
